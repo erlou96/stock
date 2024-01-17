@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.binzaijun.stock.mapper.StockInfoDTOMapper">
+
+    <resultMap type="com.binzaijun.stock.domain.StockWatchList" id="wathchlist">
+        <id     property="id"       column="id"      />
+        <result property="stockSymbol"        column="stock_symbol"       />
+        <result property="title"        column="title"       />
+        <result property="image"        column="image"       />
+        <result property="number"        column="number"       />
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+	<sql id="selectPingTaiVo">
+        select pt_id, address, title, image, number, create_time, update_by, update_time from zhibo_pingtai
+    </sql>
+
+    <select id="selectPingTai" resultMap="pingtai">
+        <include refid="selectPingTaiVo"></include>
+        <where>
+            <if test="ptId != null and ptId != ''">
+                AND pt_id like concat('%', #{ptId}, '%')
+            </if>
+            <if test="address != null and address != ''">
+                AND address = #{address}
+            </if>
+            <if test="number != null and number != ''">
+                AND number = #{number}
+            </if>
+            <if test="title != null and title != ''">
+                AND title = #{title}
+            </if>
+        </where>
+        order by pt_id
+    </select>
+
+    <insert id="addPingTai" parameterType="PingTai" useGeneratedKeys="true" keyProperty="ptId" keyColumn="pt_id">
+        insert into zhibo_pingtai (
+             address, title, image, number,  create_by, create_time)
+        values
+        <foreach collection="list" item="item" index= "index" separator =",">
+        (
+        #{item.address},
+        #{item.title},
+        #{item.image},
+        #{item.number},
+        #{item.createBy},
+        sysdate()
+        )
+        </foreach>
+    </insert>
+
+    <delete id="deletePingTaiByIds" parameterType="Long">
+        delete from zhibo_pingtai where id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{tableId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteDingYue" parameterType="Integer">
+        delete from zhibo_dingyue where id = #{id};
+    </delete>
+
+    <update id="truncatePingTai">
+            truncate table zhibo_pingtai;
+    </update>
+
+</mapper>
