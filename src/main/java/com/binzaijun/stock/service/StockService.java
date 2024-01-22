@@ -99,7 +99,9 @@ public class StockService {
     public int addStockInfoDTO(String stockSymbol) {
         StockInfo stockInfo = getOneStockInfo(stockSymbol);
         // 添加 stockInfoDTO 数据
-        StockInfoDTO stockInfoDTO = SinaStockDataUtil.construct(stockSymbol);
+        StockInfoDTO stockInfoDTO = new StockInfoDTO();
+        stockInfoDTO.setStockSymbol(stockSymbol);
+        stockInfoDTO = SinaStockDataUtil.construct(stockInfoDTO);
         stockInfoDTO.setIndustry(stockInfo.getIndustry());
         stockInfoDTO.setStockName(stockInfo.getStockName());
         stockInfoDTO.setStockSymbol(stockInfo.getStockSymbol());
@@ -142,14 +144,13 @@ public class StockService {
 
     /**
      * 查询单条 stock_info_dto 数据
-     * @param stockSymbol
+     * @param
      * @return
      */
-    public StockInfoDTO getOneStockInfoDTO(String stockSymbol) {
+    public List<StockInfoDTO> selectStockInfoDTO() {
         QueryWrapper<StockInfoDTO> queryWrapper = new QueryWrapper();
-        queryWrapper.eq("stock_symbol", stockSymbol);
-        StockInfoDTO stockInfoDTO = stockInfoDTOMapper.selectOne(queryWrapper);
-        return stockInfoDTO;
+        List<StockInfoDTO> stockInfoDTOS = stockInfoDTOMapper.selectList(queryWrapper);
+        return stockInfoDTOS;
     }
 
     /**
@@ -171,7 +172,9 @@ public class StockService {
      */
     public AjaxResult updateStockInfoDTO(String stockSymbol) {
         StockInfo stockInfo = getOneStockInfo(stockSymbol);
-        StockInfoDTO stockInfoDTO = SinaStockDataUtil.construct(stockSymbol);
+        StockInfoDTO stockInfoDTO = new StockInfoDTO();
+        stockInfoDTO.setStockSymbol(stockSymbol);
+        stockInfoDTO = SinaStockDataUtil.construct(stockInfoDTO);
         stockInfoDTO.setIndustry(stockInfo.getIndustry());
         stockInfoDTO.setStockName(stockInfo.getStockName());
         stockInfoDTO.setStockSymbol(stockSymbol);
@@ -184,24 +187,22 @@ public class StockService {
 
     public AjaxResult updateBatchStockInfoDTO(List<StockInfoDTO> stockInfos) {
 
-//        List<StockInfoDTO> stockInfoDTOList = stockInfos.stream().map(stockInfo -> {
-//            stockInfo = getOneStockInfo(stockInfo.getStockSymbol());
-//            StockInfoDTO stockInfoDTO = SinaStockDataUtil.construct(stockInfo.getStockSymbol());
-//            stockInfoDTO.setIndustry(stockInfo.getIndustry());
-//            stockInfoDTO.setStockName(stockInfo.getStockName());
-//            stockInfoDTO.setStockSymbol(stockInfo.getStockSymbol());
-//            return stockInfoDTO;
-//        }).collect(Collectors.toList());
+        stockInfos.stream().forEach(
+                stockInfoDTO -> {
+                    StockInfoDTO construct = SinaStockDataUtil.construct(stockInfoDTO);
+                    stockInfoDTOMapper.updateById(construct);
+                }
+        );
 
-        stockInfos.stream().forEach(stockInfoDTO -> {
-            System.out.println(stockInfoDTO.getHighestPrice() + "  " + stockInfoDTO.getVolatility());
-            UpdateWrapper<StockInfoDTO> updateWrapper = new UpdateWrapper();
-            updateWrapper.eq("stock_symbol", stockInfoDTO.getStockSymbol());
-            int update = stockInfoDTOMapper.update(stockInfoDTO, updateWrapper);
-            if (update == 0) {
-                stockInfoDTOMapper.insert(stockInfoDTO);
-            }
-        });
+//        stockInfos.stream().forEach(stockInfoDTO -> {
+//            System.out.println(stockInfoDTO.getHighestPrice() + "  " + stockInfoDTO.getVolatility());
+//            UpdateWrapper<StockInfoDTO> updateWrapper = new UpdateWrapper();
+//            updateWrapper.eq("stock_symbol", stockInfoDTO.getStockSymbol());
+//            int update = stockInfoDTOMapper.update(stockInfoDTO, updateWrapper);
+//            if (update == 0) {
+//                stockInfoDTOMapper.insert(stockInfoDTO);
+//            }
+//        });
         return  AjaxResult.success("更新成功");
     }
 

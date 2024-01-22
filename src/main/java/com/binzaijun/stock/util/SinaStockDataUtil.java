@@ -109,7 +109,7 @@ public class SinaStockDataUtil {
     /**
      * 计算股价最高值，最低值，最高值日期，最低值日期
      */
-    public static StockInfoDTO stockHighLowPriceInfo(List<SinaStock> stockList) {
+    public static StockInfoDTO stockHighLowPriceInfo(List<SinaStock> stockList, StockInfoDTO stockInfoDTO) {
         // list 转数组
         BigDecimal[][] stocks = listToArray(stockList);
         int highDay = 0;
@@ -132,7 +132,7 @@ public class SinaStockDataUtil {
             }
         }
 
-        StockInfoDTO stockInfoDTO = new StockInfoDTO();
+//        StockInfoDTO stockInfoDTO = new StockInfoDTO();
         stockInfoDTO.setHighestPrice(highPrice);
         stockInfoDTO.setLowestPrice(lowPrice);
         stockInfoDTO.setHighestDate(stockList.get(highDay).getDay());
@@ -173,9 +173,9 @@ public class SinaStockDataUtil {
         return stocks;
     }
 
-    public static StockInfoDTO construct(String symbol) {
-        List<SinaStock> sinaStockList = getRequest(symbol);
-        StockInfoDTO stockInfoDTO = stockHighLowPriceInfo(sinaStockList);
+    public static StockInfoDTO construct(StockInfoDTO stockInfoDTO) {
+        List<SinaStock> sinaStockList = getRequest(stockInfoDTO.getStockSymbol());
+        stockInfoDTO = stockHighLowPriceInfo(sinaStockList, stockInfoDTO);
         BigDecimal[][] stocks = listToArray(sinaStockList);
         // 波动率
         double volatility = stockPriceVolatility(stockInfoDTO.getHighestPrice(), stockInfoDTO.getLowestPrice());

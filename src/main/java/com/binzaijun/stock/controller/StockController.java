@@ -75,16 +75,9 @@ public class StockController {
     @GetMapping(value = "/update")
     public AjaxResult updateStockInfo() {
 
-//        List<StockWatchList> stockWatchList = watchListService.selectStockWatchList();
-//
-//        List<String> strStockWatchList = stockWatchList.stream()
-//                .map(watchlist -> {
-//                    return watchlist.getStockSymbol();
-//                }).collect(Collectors.toList());
-//
-//        Page<StockInfoDTO> stockInfoDTO = stockService.getStockInfoDTO(1l, 10l, "consecutive_days_limit_up", "isAsc");
+        List<StockInfoDTO> stockInfoDTOS = stockService.selectStockInfoDTO();
 
-        return AjaxResult.success();
+        return stockService.updateBatchStockInfoDTO(stockInfoDTOS);
     }
 
     /**
