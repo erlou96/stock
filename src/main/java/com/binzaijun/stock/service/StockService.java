@@ -35,14 +35,24 @@ public class StockService {
 
 
     /**
-     * 根据股票代码获取历史高价
+     * 根据股票代码获取历史k线数据
      */
-    public List<SinaStock> getStockKLineBySymbol(String symbol){
+    public StockKLineDateDTO getStockKLineBySymbol(String symbol){
+
+        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
+
+        stockKLineDateDTO.setStockSymbol(symbol);
+
+        StockInfo oneStockInfo = getOneStockInfo(symbol);
+
+        stockKLineDateDTO.setStockName(oneStockInfo.getStockName());
 
         // 获取sina 数据
         List<SinaStock> sinaStockList = SinaStockDataUtil.getRequest(symbol);
 
-        return sinaStockList;
+        stockKLineDateDTO.setSinaStockList(sinaStockList);
+
+        return stockKLineDateDTO;
     }
 
     /**
@@ -89,6 +99,14 @@ public class StockService {
         QueryWrapper<StockInfoDTO> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("stock_symbol", stockSymbol);
         Long selectCount = stockInfoDTOMapper.selectCount(queryWrapper);
+        return selectCount;
+    }
+
+    public Long isExistStockInfo(String stockSymbol) {
+        // 判断是否已经存在
+        QueryWrapper<StockInfo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("stock_symbol", stockSymbol);
+        Long selectCount = stockInfoMapper.selectCount(queryWrapper);
         return selectCount;
     }
 
@@ -240,4 +258,10 @@ public class StockService {
         return stockInfoRealTime;
     }
 
+    public StockKLineDateDTO getStockKLineBySymbolTest(String stockSymbol) {
+        List<SinaStock> request = SinaStockDataUtil.getRequest(stockSymbol);
+        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
+
+        return null;
+    }
 }

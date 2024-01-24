@@ -1,34 +1,84 @@
 package com.binzaijun.stock.domain;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
 public class SinaStock {
-    private String symbol;
-    private String name;
     private Date day;
     private BigDecimal open;
     private BigDecimal high;
     private BigDecimal low;
     private BigDecimal close;
-    private Integer volume;
-    private BigDecimal MaPrice5;
-    private Integer MaVolume5;
+    private Long volume;
+    @JSONField(name = "ma_price5")
+    private BigDecimal maPrice5;
+    @JSONField(name = "ma_volume5")
+    private BigDecimal maVolume5;
+    @JSONField(name = "ma_price10")
+    private BigDecimal maPrice10;
+    @JSONField(name = "ma_volume10")
+    private BigDecimal maVolume10;
+    @JSONField(name = "ma_price20")
+    private BigDecimal maPrice20;
+    @JSONField(name = "ma_volume20")
+    private BigDecimal maVolume20;
 
-    public String getSymbol() {
-        return symbol;
+    public Long getVolume() {
+        return volume;
     }
 
-    public void setSymbol(String symbol) {
-        this.symbol = symbol;
+    public void setVolume(Long volume) {
+        this.volume = volume;
     }
 
-    public String getName() {
-        return name;
+    public BigDecimal getMaPrice5() {
+        return maPrice5;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public BigDecimal getMaVolume5() {
+        return maVolume5;
+    }
+
+    public void setMaVolume5(BigDecimal maVolume5) {
+        this.maVolume5 = maVolume5;
+    }
+
+    public BigDecimal getMaVolume10() {
+        return maVolume10;
+    }
+
+    public void setMaVolume10(BigDecimal maVolume10) {
+        this.maVolume10 = maVolume10;
+    }
+
+    public BigDecimal getMaVolume20() {
+        return maVolume20;
+    }
+
+    public void setMaVolume20(BigDecimal maVolume20) {
+        this.maVolume20 = maVolume20;
+    }
+
+    public void setMaPrice5(BigDecimal maPrice5) {
+        this.maPrice5 = maPrice5;
+    }
+
+    public BigDecimal getMaPrice10() {
+        return maPrice10;
+    }
+
+    public void setMaPrice10(BigDecimal maPrice10) {
+        this.maPrice10 = maPrice10;
+    }
+
+    public BigDecimal getMaPrice20() {
+        return maPrice20;
+    }
+
+    public void setMaPrice20(BigDecimal maPrice20) {
+        this.maPrice20 = maPrice20;
     }
 
     public Date getDay() {
@@ -71,27 +121,17 @@ public class SinaStock {
         this.close = close;
     }
 
-    public Integer getVolume() {
-        return volume;
-    }
-
-    public void setVolume(Integer volume) {
-        this.volume = volume;
-    }
-
-    public BigDecimal getMaPrice5() {
-        return MaPrice5;
-    }
-
-    public void setMaPrice5(BigDecimal maPrice5) {
-        MaPrice5 = maPrice5;
-    }
-
-    public Integer getMaVolume5() {
-        return MaVolume5;
-    }
-
-    public void setMaVolume5(Integer maVolume5) {
-        MaVolume5 = maVolume5;
+    @Override
+    public String toString() {
+        return "SinaStockTest{" +
+                "day=" + day +
+                ", open=" + open +
+                ", high=" + high +
+                ", low=" + low +
+                ", close=" + close +
+                ", maPrice5=" + maPrice5 +
+                ", maPrice10=" + maPrice10 +
+                ", maPrice20=" + maPrice20 +
+                '}';
     }
 }

@@ -5,15 +5,18 @@ import com.binzaijun.stock.common.AjaxResult;
 import com.binzaijun.stock.domain.*;
 import com.binzaijun.stock.service.StockService;
 import com.binzaijun.stock.service.WatchListService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/stock")
 public class StockController {
+
+    private Logger logger = LoggerFactory.getLogger(StockController.class);
 
     @Autowired
     StockService stockService;
@@ -85,9 +88,17 @@ public class StockController {
      * @return
      */
     @GetMapping(value = "/kline/{symbol}")
-    public AjaxResult getStockKLine(@PathVariable String symbol) {
-        List<SinaStock> stockKLineBySymbol = stockService.getStockKLineBySymbol(symbol);
-        return AjaxResult.success(stockKLineBySymbol);
+    public AjaxResult getStockKLine(@PathVariable(value = "symbol") String stockSymbol) {
+
+        logger.info("获取{}的k线数据",stockSymbol);
+        Long existStockInfo = stockService.isExistStockInfo(stockSymbol);
+        if (existStockInfo == 0) {
+            return AjaxResult.error("该数据不存在!");
+        }
+
+        StockKLineDateDTO stockKLineDateDTO = stockService.getStockKLineBySymbol(stockSymbol);
+
+        return AjaxResult.success(stockKLineDateDTO);
     }
 
     /**
@@ -97,7 +108,6 @@ public class StockController {
     @GetMapping(value = "/search")
     public AjaxResult getStockInfoByES(String queryString) {
 
-        System.out.println("sdf"+queryString);
         List<StockInfo> stockInfoList = stockService.getStockInfoByES(queryString);
         return AjaxResult.success(stockInfoList);
     }

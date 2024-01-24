@@ -2,9 +2,7 @@ package com.binzaijun.stock.util;
 
 import com.alibaba.fastjson2.JSON;
 import com.binzaijun.stock.constant.Constants;
-import com.binzaijun.stock.domain.QtStock;
-import com.binzaijun.stock.domain.SinaStock;
-import com.binzaijun.stock.domain.StockInfoDTO;
+import com.binzaijun.stock.domain.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,14 +14,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SinaStockDataUtil {
 
     // 30个交易日
-    public static final int DATALEN = 30;
+    public static final int DATALEN = 60;
     // 周期：60 为一个小时，一天则是 60 * 4
     public static final int SCALE = 240;
-    public static final int MA = 5;
+    public static final String MA = "5,10,20";
     public static BigDecimal percentage_10 = new BigDecimal("1.1");
     public static final String URL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData";
     public static final String REALTIME_URL = "http://qt.gtimg.cn/q=";
@@ -55,6 +54,7 @@ public class SinaStockDataUtil {
             return null;
         }
     }
+
 
     /**
      * 获取股票最大连板天数
@@ -229,23 +229,16 @@ public class SinaStockDataUtil {
     public static void main(String[] args) {
        String url = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sh600678&scale=240&ma=5&datalen=30";
 
-//        List<SinaStock> sinaStockList = getRequest("sh600571");
+        List<SinaStock> sh600519 = getRequest("sh600519");
 
-//        StockInfoDTO stockPriceDTO = stockHighLowPriceInfo(sinaStockList);
-//
-//        BigDecimal[][] stocks = listToArray(sinaStockList);
-//
-//        // 涨停天数
-//        int day = getDaysOfStockPriceLimitUp(stocks);
-//        stockPriceDTO.setDaysLimitUp(day);
-//        // 连扳次数
-//        int consecutiveDays = getConsecutiveDaysOfStockPriceLimitUp(stocks);
-//        stockPriceDTO.setConsecutiveDaysLimitUp(consecutiveDays);
-//
-//        System.out.println(stockPriceDTO.toString());
+        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
 
-        List<String> strings = Arrays.asList("sh600519", "sh601949", "sz000004");
-//        strings = Arrays.asList("sh600519");
-        getStockInfoRealTime(strings);
+        stockKLineDateDTO.setStockName("sh600519");
+
+        stockKLineDateDTO.setSinaStockList(sh600519);
+
+        System.out.println(stockKLineDateDTO);
+
+
     }
 }
