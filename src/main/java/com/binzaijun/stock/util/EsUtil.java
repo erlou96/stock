@@ -2,6 +2,7 @@ package com.binzaijun.stock.util;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.binzaijun.stock.domain.SinaStock;
+import com.binzaijun.stock.domain.StockChange;
 import com.binzaijun.stock.domain.StockInfo;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -23,6 +24,8 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,8 +33,10 @@ import java.util.List;
 
 public class EsUtil {
 
+    private static Logger log = LoggerFactory.getLogger(EsUtil.class);
+
     private static final String HOST = "59.110.32.152";
-    private static final String STOCK = "stock";
+    private static final String STOCK_NAME = "stock_change";
     private static final String TYPE = "_doc";
     private static final String NAME = "elastic";
     private static final String PASSWORD = "han1996";
@@ -50,6 +55,7 @@ public class EsUtil {
                         new HttpHost(HOST, 9200, "http"),
                         new HttpHost(HOST, 9201, "http"))
                         .setHttpClientConfigCallback(f -> f.setDefaultCredentialsProvider(credentialsProvider)));
+        log.info("create es client success");
         return client;
     }
 
@@ -57,18 +63,18 @@ public class EsUtil {
      * bulk导入日k数据
      * @throws IOException
      */
-    public static void bulkEsData(List<SinaStock> sinaStockList) throws IOException {
+    public static void bulkEsData(List<StockChange> stockChangeList) throws IOException {
 
         RestHighLevelClient client = createClient();
         // 创建一个 BulkRequest 对象
         BulkRequest bulkRequest = new BulkRequest();
 
         // 构建多个 IndexRequest 添加到 BulkRequest 中
-        for (SinaStock stock : sinaStockList) {
-            bulkRequest.add(new IndexRequest(STOCK, TYPE)
-                    .source(JSONObject.from(stock), XContentType.JSON));
+        for (StockChange stockChange : stockChangeList) {
+            bulkRequest.add(new IndexRequest(STOCK_NAME, TYPE)
+                    .id(stockChange.getStockSymbol()  + "-" + stockChange.getDate())
+                    .source(JSONObject.from(stockChange), XContentType.JSON));
         }
-
 
         // 执行 BulkRequest 操作
         try {
@@ -76,19 +82,19 @@ public class EsUtil {
             // 处理响应结果
             if (bulkResponse.hasFailures()) {
                 // 处理失败情况
-                System.out.println("Bulk request failed:");
-                System.out.println(bulkResponse.buildFailureMessage());
+                log.error("Bulk request failed:");
+                log.error(bulkResponse.buildFailureMessage());
             } else {
                 // 成功情况
-                System.out.println("Bulk request successful!");
+                log.info("Bulk request successful!");
             }
         }catch (Exception e) {
-            System.out.println(e);
+            log.error(e.getMessage());
         }
 
         // 关闭客户端连接
         client.close();
-
+        log.info("es client close ");
     }
 
 
@@ -161,8 +167,9 @@ public class EsUtil {
         return null;
     }
 
-    public static void main(String[] args) {
-        selectData("zgcb");
-        selectAllData();
+    public static void main(String[] args) throws Exception{
+//        selectData("zgcb");
+//        selectAllData();
+
     }
 }

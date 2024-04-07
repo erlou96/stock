@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @MapperScan("com.binzaijun.stock.mapper")
+@MapperScan("com.binzaijun.stock.service")
 public class MybatisPlusConfig {
 
     @Bean

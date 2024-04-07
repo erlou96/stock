@@ -39,7 +39,7 @@ public class StockController {
         if(null == pageSize || pageSize <= 10) {
             pageSize = 10L;
         }
-        Page<StockInfoDTO> stockInfoDTO = stockService.getStockInfoDTO(pageNum, pageSize, stockName, orderByColumn, isAsc);
+        Page<StockInfoDTO> stockInfoDTO = stockService.selectStockInfoDTO(pageNum, pageSize, stockName, orderByColumn, isAsc);
         return AjaxResult.success(stockInfoDTO);
     }
 
@@ -135,5 +135,33 @@ public class StockController {
         List<StockInfoDTO> stockInfoDTOS = stockService.getStockInfoDTOByStockName(stockSymbols);
         return AjaxResult.success(stockInfoDTOS);
     }
+
+    /**
+     * 获取东方财富异动信息，添加到数据库中
+     */
+    @GetMapping(value = "/add-change-info")
+    public AjaxResult addStockChange() {
+
+        boolean b = stockService.saveStockChange();
+        if (b) {
+            return AjaxResult.success("添加成功");
+        }else {
+            return AjaxResult.error("添加失败");
+        }
+
+    }
+
+    /**
+     * 获取东方财富异动信息，添加到数据库中
+     */
+    @GetMapping(value = "/get-change-info")
+    public AjaxResult getStockChange() {
+
+
+        List<String> stockChange = stockService.getStockChange();
+        return AjaxResult.success(stockChange);
+
+    }
+
 
 }

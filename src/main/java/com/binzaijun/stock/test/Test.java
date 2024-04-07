@@ -17,6 +17,9 @@ public class Test {
     }
 
     public static void main(String[] args) {
+        float a = 0.1f;
+        float f = 0.2f;
+        System.out.println(a + f == 0.3f);
         Double d = 10.04;
         for (int i = 0; i <= 5 ;i++) {
             DecimalFormat decimalFormat = new DecimalFormat("#.##");

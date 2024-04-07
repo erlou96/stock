@@ -1,8 +1,19 @@
 package com.binzaijun.stock.util;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.binzaijun.stock.common.StockChangeEnum;
 import com.binzaijun.stock.constant.Constants;
 import com.binzaijun.stock.domain.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -11,21 +22,32 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-public class SinaStockDataUtil {
+/**
+ * 请求外部数据接口
+ */
+public class StockDataUtil {
 
-    // 30个交易日
+    private static Logger log = LoggerFactory.getLogger(StockChange.class);
+
+    // 交易日长度
     public static final int DATALEN = 60;
     // 周期：60 为一个小时，一天则是 60 * 4
     public static final int SCALE = 240;
+    // 均线：5日，10日，20日
     public static final String MA = "5,10,20";
+    // 最大涨幅：默认10%
     public static BigDecimal percentage_10 = new BigDecimal("1.1");
-    public static final String URL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData";
-    public static final String REALTIME_URL = "http://qt.gtimg.cn/q=";
+    // 新浪数据--获取个股历史数据
+    public static String historyStockDataOfSinaURL = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData";
+    // 腾讯数据--获取个股实时价格
+    public static String realTimeStockDataOfQtURL = "http://qt.gtimg.cn/q=";
+    // 东方财富数据-获取股票异动信息
+    public static String stockChangesDataOfEastMoney = "http://push2ex.eastmoney.com/getAllStockChanges";
 
     /**
      * 获取sina stock api
@@ -37,7 +59,7 @@ public class SinaStockDataUtil {
         try{
             RestTemplate restTemplate = new RestTemplate();
             UriComponents
-                    uriComponents = UriComponentsBuilder.fromUriString(URL)
+                    uriComponents = UriComponentsBuilder.fromUriString(historyStockDataOfSinaURL)
                     .queryParam(Constants.DATALEN,DATALEN)
                     .queryParam(Constants.SCALE, SCALE)
                     .queryParam(Constants.MA, MA)
@@ -69,7 +91,7 @@ public class SinaStockDataUtil {
             // 昨天收盘价
             BigDecimal closePrice = stocks[i-1][3];
             BigDecimal nowClosePrice = closePrice.multiply(percentage_10);
-            // 第二天涨停的收盘价
+            // 第二天涨停的收盘价,并且设置小数位，和是否向上取整。
             closePrice = nowClosePrice.setScale(2,  RoundingMode.HALF_UP);
 
             // 今天涨停的收盘价与实际的收盘价做比较
@@ -132,7 +154,6 @@ public class SinaStockDataUtil {
             }
         }
 
-//        StockInfoDTO stockInfoDTO = new StockInfoDTO();
         stockInfoDTO.setHighestPrice(highPrice);
         stockInfoDTO.setLowestPrice(lowPrice);
         stockInfoDTO.setHighestDate(stockList.get(highDay).getDay());
@@ -173,6 +194,11 @@ public class SinaStockDataUtil {
         return stocks;
     }
 
+    /**
+     * 构建数据
+     * @param stockInfoDTO
+     * @return
+     */
     public static StockInfoDTO construct(StockInfoDTO stockInfoDTO) {
         List<SinaStock> sinaStockList = getRequest(stockInfoDTO.getStockSymbol());
         stockInfoDTO = stockHighLowPriceInfo(sinaStockList, stockInfoDTO);
@@ -190,7 +216,7 @@ public class SinaStockDataUtil {
     }
 
     /**
-     * 获取实时行情
+     * 获取实时行情，价格
      * @param
      */
     public static List<QtStock> getStockInfoRealTime(List<String> symbol) {
@@ -200,7 +226,7 @@ public class SinaStockDataUtil {
         try{
             RestTemplate restTemplate = new RestTemplate();
             UriComponents
-                    uriComponents = UriComponentsBuilder.fromUriString(REALTIME_URL + urlSuffix)
+                    uriComponents = UriComponentsBuilder.fromUriString(realTimeStockDataOfQtURL + urlSuffix)
                     .build()
                     .encode();
             URI uri = uriComponents.toUri();
@@ -226,19 +252,85 @@ public class SinaStockDataUtil {
         }
     }
 
-    public static void main(String[] args) {
-       String url = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sh600678&scale=240&ma=5&datalen=30";
+    /**
+     * 获取东方财富--股票异动信息
+     */
+    public static List<StockChange> stockChangesEastMoney() {
 
-        List<SinaStock> sh600519 = getRequest("sh600519");
+        log.info("开始获取股票异动信息...");
+        // 创建 RestTemplate 实例
+        RestTemplate restTemplate = new RestTemplate();
 
-        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
+        // 设置请求头
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (Khtml, like Gecko) Chrome/70.0.3538.25 Safari/537.36 Core/1.70.3676.400 QQBrowser/10.5.3738.400");
+        headers.set("Content-Type", "application/json"); // 根据实际需要设置其他 Header
 
-        stockKLineDateDTO.setStockName("sh600519");
+        // 构建请求 URL，并添加请求参数
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stockChangesDataOfEastMoney)
+                .queryParam("type", "8201,8202,8193,4,32,64,8207,8209,8211,8213,8215,8204,8203,8194,8,16,128,8208,8210,8212,8214,8216")
+                .queryParam("pageindex", "0")
+                .queryParam("pagesize", "10000")
+                .queryParam("ut", "7eea3edcaed734bea9cbfc24409ed989")
+                .queryParam("dpt", "wzchanges");
 
-        stockKLineDateDTO.setSinaStockList(sh600519);
+        // 创建 HttpEntity 对象，将请求头封装到其中
+        HttpEntity<String> requestEntity = new HttpEntity<>(null, headers);
 
-        System.out.println(stockKLineDateDTO);
+        // 发送请求并获取响应
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                builder.toUriString(), // 构建的请求 URL
+                HttpMethod.GET, // 请求方法
+                requestEntity, // 请求实体，包含请求头
+                String.class); // 响应的数据类型
 
+        // 获取响应体
+        String responseBody = responseEntity.getBody();
 
+        JSONObject jsonObject = JSON.parseObject(responseBody);
+
+        JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("allstock");
+
+        List<StockChange> stockChangeList = jsonArray.toJavaList(StockChange.class);
+
+        stockChangeList = stockChangeList.stream().filter(tmp -> {
+            // 过滤包含"60" 和 "00" 开头的主板股票
+           return (tmp.getStockSymbol().startsWith("60") || tmp.getStockSymbol().startsWith("00")) && !tmp.getStockName().startsWith("ST") && !tmp.getStockName().startsWith("*ST");
+        }).map(tmp -> {
+            // 更新时间字段
+            Date date = DateUtil.formatDate(tmp.getTm());
+            tmp.setId(tmp.getStockSymbol()  + Constants.HYPHEN + tmp.getType() + Constants.HYPHEN + date.getTime());
+            tmp.setDate(date);
+            // 更新异动类型
+            tmp.setChangeType(StockChangeEnum.fromValue(tmp.getType()).getChangeType());
+            return tmp;
+        }).collect(Collectors.toList());
+
+        log.info("获取获取股票异动信息结束，获取条数: {}", stockChangeList.size());
+
+        return stockChangeList;
+    }
+
+    public static void main(String[] args) throws Exception{
+
+        String url = "https://money.finance.sina.com.cn/quotes_service/api/json_v2.php/CN_MarketData.getKLineData?symbol=sh600678&scale=240&ma=5&datalen=30";
+
+//        List<SinaStock> sh600519 = getRequest("sh600519");
+//
+//        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
+//
+//        stockKLineDateDTO.setStockName("sh600519");
+//
+//        stockKLineDateDTO.setSinaStockList(sh600519);
+//
+//        System.out.println(stockKLineDateDTO);
+
+        List<StockChange> stockChanges = stockChangesEastMoney();
+
+//        for (StockChange stockChange: stockChanges) {
+//            System.out.println(stockChange.getId());
+//        }
+
+//        EsUtil.bulkEsData(stockChanges);
     }
 }

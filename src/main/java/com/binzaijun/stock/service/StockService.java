@@ -7,31 +7,33 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.binzaijun.stock.common.AjaxResult;
 import com.binzaijun.stock.domain.*;
+import com.binzaijun.stock.mapper.StockChangeMapper;
 import com.binzaijun.stock.mapper.StockInfoDTOMapper;
 import com.binzaijun.stock.mapper.StockInfoMapper;
-import com.binzaijun.stock.mapper.WatchListMapper;
 import com.binzaijun.stock.util.EsUtil;
-import com.binzaijun.stock.util.SinaStockDataUtil;
+import com.binzaijun.stock.util.StockDataUtil;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class StockService {
 
-    @Autowired
+    @Resource
     private StockInfoDTOMapper stockInfoDTOMapper;
 
-    @Autowired
+    @Resource
     private StockInfoMapper stockInfoMapper;
 
-    @Autowired
-    private WatchListService watchListService;
+    @Resource
+    private StockChangeMapper stockChangeMapper;
 
 
     /**
@@ -48,7 +50,7 @@ public class StockService {
         stockKLineDateDTO.setStockName(oneStockInfo.getStockName());
 
         // 获取sina 数据
-        List<SinaStock> sinaStockList = SinaStockDataUtil.getRequest(symbol);
+        List<SinaStock> sinaStockList = StockDataUtil.getRequest(symbol);
 
         stockKLineDateDTO.setSinaStockList(sinaStockList);
 
@@ -59,7 +61,7 @@ public class StockService {
      * 分页查询
      * @return
      */
-    public Page<StockInfoDTO> getStockInfoDTO(Long pageNum, Long pageSize, String stockName, String orderByColumn, String isAsc) {
+    public Page<StockInfoDTO> selectStockInfoDTO(Long pageNum, Long pageSize, String stockName, String orderByColumn, String isAsc) {
 
         QueryWrapper<StockInfoDTO> queryWrapper = new QueryWrapper<>();
 
@@ -119,7 +121,7 @@ public class StockService {
         // 添加 stockInfoDTO 数据
         StockInfoDTO stockInfoDTO = new StockInfoDTO();
         stockInfoDTO.setStockSymbol(stockSymbol);
-        stockInfoDTO = SinaStockDataUtil.construct(stockInfoDTO);
+        stockInfoDTO = StockDataUtil.construct(stockInfoDTO);
         stockInfoDTO.setIndustry(stockInfo.getIndustry());
         stockInfoDTO.setStockName(stockInfo.getStockName());
         stockInfoDTO.setStockSymbol(stockInfo.getStockSymbol());
@@ -192,7 +194,7 @@ public class StockService {
         StockInfo stockInfo = getOneStockInfo(stockSymbol);
         StockInfoDTO stockInfoDTO = new StockInfoDTO();
         stockInfoDTO.setStockSymbol(stockSymbol);
-        stockInfoDTO = SinaStockDataUtil.construct(stockInfoDTO);
+        stockInfoDTO = StockDataUtil.construct(stockInfoDTO);
         stockInfoDTO.setIndustry(stockInfo.getIndustry());
         stockInfoDTO.setStockName(stockInfo.getStockName());
         stockInfoDTO.setStockSymbol(stockSymbol);
@@ -207,20 +209,11 @@ public class StockService {
 
         stockInfos.stream().forEach(
                 stockInfoDTO -> {
-                    StockInfoDTO construct = SinaStockDataUtil.construct(stockInfoDTO);
+                    StockInfoDTO construct = StockDataUtil.construct(stockInfoDTO);
                     stockInfoDTOMapper.updateById(construct);
                 }
         );
 
-//        stockInfos.stream().forEach(stockInfoDTO -> {
-//            System.out.println(stockInfoDTO.getHighestPrice() + "  " + stockInfoDTO.getVolatility());
-//            UpdateWrapper<StockInfoDTO> updateWrapper = new UpdateWrapper();
-//            updateWrapper.eq("stock_symbol", stockInfoDTO.getStockSymbol());
-//            int update = stockInfoDTOMapper.update(stockInfoDTO, updateWrapper);
-//            if (update == 0) {
-//                stockInfoDTOMapper.insert(stockInfoDTO);
-//            }
-//        });
         return  AjaxResult.success("更新成功");
     }
 
@@ -254,14 +247,45 @@ public class StockService {
     }
 
     public List<QtStock> getStockCurrentPrice(List<String> stockSymbol) {
-        List<QtStock> stockInfoRealTime = SinaStockDataUtil.getStockInfoRealTime(stockSymbol);
+        List<QtStock> stockInfoRealTime = StockDataUtil.getStockInfoRealTime(stockSymbol);
         return stockInfoRealTime;
     }
 
-    public StockKLineDateDTO getStockKLineBySymbolTest(String stockSymbol) {
-        List<SinaStock> request = SinaStockDataUtil.getRequest(stockSymbol);
-        StockKLineDateDTO stockKLineDateDTO = new StockKLineDateDTO();
-
-        return null;
+    public boolean saveStockChange() {
+        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney();
+        return stockChangeMapper.saveOrUpdateBatch(stockChanges);
     }
+
+
+    public List<String> getStockChange() {
+        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney();
+
+        // 过滤火箭发射的代码
+        List<String> HJFS = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "火箭发射").map(tmp -> tmp.getStockName()).collect(Collectors.toList());
+
+
+        // 过滤大笔买入的超过三次的股票名称
+        Map<String, Long> DBMR = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "大笔买入")
+                .filter(tmp -> Integer.parseInt(tmp.getInfo().split(",")[0]) > 1000000)
+                .collect(Collectors.groupingBy(stockChange -> stockChange.getStockName(), Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() >= 3)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        List<String> result = new ArrayList<>();
+    
+        // 打印符合条件的分组统计
+        DBMR.forEach((stockName, count) -> {
+            if (HJFS.contains(stockName)) {
+                result.add(stockName);
+                System.out.println("Stock Names: " + stockName + " and count : " + count);
+            }
+
+            }
+        );
+
+        return result;
+
+    }
+
 }

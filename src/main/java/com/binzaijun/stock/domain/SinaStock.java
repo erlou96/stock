@@ -5,6 +5,9 @@ import com.alibaba.fastjson.annotation.JSONField;
 import java.math.BigDecimal;
 import java.util.Date;
 
+/**
+ * 新浪股票数据接口类
+ */
 public class SinaStock {
     private Date day;
     private BigDecimal open;

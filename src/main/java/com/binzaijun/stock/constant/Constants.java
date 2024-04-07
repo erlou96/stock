@@ -145,5 +145,6 @@ public class Constants
     public static final String SEMICOLON = ";";
     public static final String TILDE = "~";
     public static final String EQUALSIGN = "=";
+    public static final String HYPHEN = "-";
 
 }

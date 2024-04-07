@@ -2,6 +2,9 @@ package com.binzaijun.stock.domain;
 
 import java.math.BigDecimal;
 
+/**
+ * 腾讯股票接口数据类
+ */
 public class QtStock {
     // 股票代码
     private String stockSymbol;

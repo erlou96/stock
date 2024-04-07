@@ -51,7 +51,7 @@ public class StockServiceTest {
 
     @Test
     public void test2() {
-        Page<StockInfoDTO> stockInfoDTO = stockService.getStockInfoDTO(1l, 10l, "", "consecutiveDaysLimitUp", "asc");
+        Page<StockInfoDTO> stockInfoDTO = stockService.selectStockInfoDTO(1l, 10l, "", "consecutiveDaysLimitUp", "asc");
 
 
     }

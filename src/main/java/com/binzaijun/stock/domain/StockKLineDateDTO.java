@@ -2,6 +2,9 @@ package com.binzaijun.stock.domain;
 
 import java.util.List;
 
+/**
+ * 个股历史k线数据
+ */
 public class StockKLineDateDTO {
     private String stockName;
     private String stockSymbol;
