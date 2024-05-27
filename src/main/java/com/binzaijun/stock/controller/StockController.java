@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -155,12 +156,12 @@ public class StockController {
      * 获取东方财富异动信息，添加到数据库中
      */
     @GetMapping(value = "/get-change-info")
-    public AjaxResult getStockChange() {
+    public AjaxResult getStockChange(@RequestParam(value = "changeType", defaultValue = "8202") int[] changeType) {
 
-
-        List<String> stockChange = stockService.getStockChange();
+        logger.info("获取异动类型：" + Arrays.toString(changeType));
+        List<StockChange> stockChange = stockService.getAllStockChange(changeType);
         return AjaxResult.success(stockChange);
-
+        
     }
 
 

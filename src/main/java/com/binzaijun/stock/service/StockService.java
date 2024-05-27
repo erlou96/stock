@@ -14,7 +14,6 @@ import com.binzaijun.stock.util.EsUtil;
 import com.binzaijun.stock.util.StockDataUtil;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -252,13 +251,13 @@ public class StockService {
     }
 
     public boolean saveStockChange() {
-        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney();
+        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney(new int[0]);
         return stockChangeMapper.saveOrUpdateBatch(stockChanges);
     }
 
 
     public List<String> getStockChange() {
-        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney();
+        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney(new int[0]);
 
         // 过滤火箭发射的代码
         List<String> HJFS = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "火箭发射").map(tmp -> tmp.getStockName()).collect(Collectors.toList());
@@ -273,7 +272,7 @@ public class StockService {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         List<String> result = new ArrayList<>();
-    
+
         // 打印符合条件的分组统计
         DBMR.forEach((stockName, count) -> {
             if (HJFS.contains(stockName)) {
@@ -288,4 +287,10 @@ public class StockService {
 
     }
 
+    public List<StockChange> getAllStockChange(int[] changeType) {
+        List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney(changeType);
+
+       return stockChanges;
+
+    }
 }

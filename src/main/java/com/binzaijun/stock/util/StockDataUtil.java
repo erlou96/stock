@@ -21,10 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -32,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class StockDataUtil {
 
-    private static Logger log = LoggerFactory.getLogger(StockChange.class);
+    private static Logger log = LoggerFactory.getLogger(StockDataUtil.class);
 
     // 交易日长度
     public static final int DATALEN = 60;
@@ -255,9 +252,25 @@ public class StockDataUtil {
     /**
      * 获取东方财富--股票异动信息
      */
-    public static List<StockChange> stockChangesEastMoney() {
+    public static List<StockChange> stockChangesEastMoney(int[] changeType) {
 
-        log.info("开始获取股票异动信息...");
+        log.info("开始获取东方财富股票异动接口信息...");
+
+        // 全部的异动类型
+        int[] defaultChangeType = new int[]{8201,8202,8193,4,32,64,8207,8209,8211,8213,8215,8204,8203,8194,8,16,128,8208,8210,8212,8214,8216};
+
+        // 当传参没有异动类型时，自动使用默认的异动类型
+        if (changeType == null || changeType.length == 0) {
+            changeType = defaultChangeType;
+        }
+
+        // 拼接异动类型，转为字符串，作为请求参数k-v
+        String result = Arrays.stream(changeType)
+                .mapToObj(String::valueOf)
+                .reduce((x, y) -> x + "," + y)
+                .orElse("");
+
+
         // 创建 RestTemplate 实例
         RestTemplate restTemplate = new RestTemplate();
 
@@ -268,7 +281,7 @@ public class StockDataUtil {
 
         // 构建请求 URL，并添加请求参数
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(stockChangesDataOfEastMoney)
-                .queryParam("type", "8201,8202,8193,4,32,64,8207,8209,8211,8213,8215,8204,8203,8194,8,16,128,8208,8210,8212,8214,8216")
+                .queryParam("type", result)
                 .queryParam("pageindex", "0")
                 .queryParam("pagesize", "10000")
                 .queryParam("ut", "7eea3edcaed734bea9cbfc24409ed989")
@@ -325,12 +338,13 @@ public class StockDataUtil {
 //
 //        System.out.println(stockKLineDateDTO);
 
-        List<StockChange> stockChanges = stockChangesEastMoney();
+        List<StockChange> stockChanges = stockChangesEastMoney(null);
 
 //        for (StockChange stockChange: stockChanges) {
-//            System.out.println(stockChange.getId());
+//            log.info(stockChange.toString());
 //        }
 
 //        EsUtil.bulkEsData(stockChanges);
+
     }
 }

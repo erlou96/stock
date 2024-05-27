@@ -104,4 +104,15 @@ public class StockChange {
         this.info = info;
         this.date = date;
     }
+
+    @Override
+    public String toString() {
+        return "StockChange{" +
+                "stockName='" + stockName + '\'' +
+                ", stockSymbol='" + stockSymbol + '\'' +
+                ", changeType='" + changeType + '\'' +
+                ", info='" + info + '\'' +
+                ", date=" + date +
+                '}';
+    }
 }
