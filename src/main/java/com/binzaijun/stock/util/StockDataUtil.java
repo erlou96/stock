@@ -302,9 +302,23 @@ public class StockDataUtil {
 
         JSONObject jsonObject = JSON.parseObject(responseBody);
 
-        JSONArray jsonArray = jsonObject.getJSONObject("data").getJSONArray("allstock");
+        List<StockChange> stockChangeList = new ArrayList<StockChange>();
 
-        List<StockChange> stockChangeList = jsonArray.toJavaList(StockChange.class);
+        if (jsonObject.containsKey("data")) {
+
+            JSONObject data = jsonObject.getJSONObject("data");
+
+            if (data != null) {
+
+                JSONArray jsonArray = data.getJSONArray("allstock");
+
+                stockChangeList = jsonArray.toJavaList(StockChange.class);
+            }
+        }
+
+        else {
+            return stockChangeList;
+        }
 
         stockChangeList = stockChangeList.stream().filter(tmp -> {
             // 过滤包含"60" 和 "00" 开头的主板股票
@@ -338,11 +352,11 @@ public class StockDataUtil {
 //
 //        System.out.println(stockKLineDateDTO);
 
-        List<StockChange> stockChanges = stockChangesEastMoney(null);
+        List<StockChange> stockChanges = stockChangesEastMoney(new int[]{8});
 
-//        for (StockChange stockChange: stockChanges) {
-//            log.info(stockChange.toString());
-//        }
+        for (StockChange stockChange: stockChanges) {
+            log.info(stockChange.toString());
+        }
 
 //        EsUtil.bulkEsData(stockChanges);
 

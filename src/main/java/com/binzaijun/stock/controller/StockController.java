@@ -153,16 +153,15 @@ public class StockController {
     }
 
     /**
-     * 获取东方财富异动信息，添加到数据库中
+     * 获取东方财富异动信息
      */
     @GetMapping(value = "/get-change-info")
     public AjaxResult getStockChange(@RequestParam(value = "changeType", defaultValue = "8202") int[] changeType) {
 
-        logger.info("获取异动类型：" + Arrays.toString(changeType));
+        logger.info("开始获取股票异动信息,获取异动类型：" + Arrays.toString(changeType));
         List<StockChange> stockChange = stockService.getAllStockChange(changeType);
+        logger.info("获取股票异动信息结束");
         return AjaxResult.success(stockChange);
-        
     }
-
 
 }

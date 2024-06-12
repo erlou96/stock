@@ -256,41 +256,67 @@ public class StockService {
     }
 
 
-    public List<String> getStockChange() {
+    /**
+     * 策略选股
+     * @return
+     */
+    public List<String> getStockChangeByPolice(int HJFSnums, int DBMRnums) {
         List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney(new int[0]);
 
-        // 过滤火箭发射的代码
-        List<String> HJFS = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "火箭发射").map(tmp -> tmp.getStockName()).collect(Collectors.toList());
-
+        if (HJFSnums > 0) {
+            Map<String, Long> HJFSInfo = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "火箭发射")
+                    .collect(Collectors.groupingBy(stockChange -> stockChange.getStockSymbol(), Collectors.counting()))
+                    .entrySet().stream()
+                    .filter(entry -> entry.getValue() > HJFSnums)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
 
         // 过滤大笔买入的超过三次的股票名称
-        Map<String, Long> DBMR = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "大笔买入")
-                .filter(tmp -> Integer.parseInt(tmp.getInfo().split(",")[0]) > 1000000)
-                .collect(Collectors.groupingBy(stockChange -> stockChange.getStockName(), Collectors.counting()))
-                .entrySet().stream()
-                .filter(entry -> entry.getValue() >= 3)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        if (DBMRnums > 0) {
+            Map<String, Long> DBMRInfo = stockChanges.stream().filter(tmp -> tmp.getChangeType() == "大笔买入")
+                    .collect(Collectors.groupingBy(stockChange -> stockChange.getStockSymbol(), Collectors.counting()))
+                    .entrySet().stream()
+                    .filter(entry -> entry.getValue() >= DBMRnums)
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+
 
         List<String> result = new ArrayList<>();
 
-        // 打印符合条件的分组统计
-        DBMR.forEach((stockName, count) -> {
-            if (HJFS.contains(stockName)) {
-                result.add(stockName);
-                System.out.println("Stock Names: " + stockName + " and count : " + count);
-            }
 
-            }
-        );
 
         return result;
-
     }
 
     public List<StockChange> getAllStockChange(int[] changeType) {
         List<StockChange> stockChanges = StockDataUtil.stockChangesEastMoney(changeType);
+        List<StockChange> collect = stockChanges.stream().map(tmp -> {
+            if (tmp.getChangeType() == "封涨停板") {
+                tmp.setPrice(tmp.getInfo().split(",")[0]);
+                tmp.setChangeInfo(tmp.getInfo().split(",")[1]);
+                tmp.setPercent(tmp.getInfo().split(",")[3]);
+            }else if(tmp.getChangeType() == "打开跌停板") {
+                tmp.setPrice(tmp.getInfo().split(",")[0]);
+                tmp.setChangeInfo(tmp.getInfo().split(",")[1]);
+                tmp.setPercent(tmp.getInfo().split(",")[1]);
+            }else if(tmp.getChangeType() == "封跌停板") {
+                tmp.setPrice(tmp.getInfo().split(",")[0]);
+                tmp.setChangeInfo(tmp.getInfo().split(",")[1]);
+                tmp.setPercent(tmp.getInfo().split(",")[3]);
+            } else if(tmp.getChangeType() == "打开涨停板") {
+                tmp.setPrice(tmp.getInfo().split(",")[0]);
+                tmp.setChangeInfo(tmp.getInfo().split(",")[1]);
+                tmp.setPercent(tmp.getInfo().split(",")[1]);
+            }else {
+                tmp.setPrice(tmp.getInfo().split(",")[1]);
+                tmp.setChangeInfo(tmp.getInfo().split(",")[0]);
+                tmp.setPercent(tmp.getInfo().split(",")[2]);
+            }
+            return tmp;
+        }).collect(Collectors.toList());
 
-       return stockChanges;
+        return stockChanges;
 
     }
 }

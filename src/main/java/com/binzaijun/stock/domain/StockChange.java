@@ -30,6 +30,12 @@ public class StockChange {
     private Date date;
     @TableId
     private String id;
+    @TableField(exist = false)
+    private String price;
+    @TableField(exist = false)
+    private String changeInfo;
+    @TableField(exist = false)
+    private String percent;
 
     public String getStockName() {
         return stockName;
@@ -95,6 +101,29 @@ public class StockChange {
         this.id = id;
     }
 
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public String getChangeInfo() {
+        return changeInfo;
+    }
+
+    public void setChangeInfo(String changeInfo) {
+        this.changeInfo = changeInfo;
+    }
+
+    public String getPercent() {
+        return percent;
+    }
+
+    public void setPercent(String percent) {
+        this.percent = percent;
+    }
 
     public StockChange(String stockName, String stockSymbol, String tm, String changeType, String info, Date date) {
         this.stockName = stockName;
@@ -110,9 +139,15 @@ public class StockChange {
         return "StockChange{" +
                 "stockName='" + stockName + '\'' +
                 ", stockSymbol='" + stockSymbol + '\'' +
+                ", tm='" + tm + '\'' +
+                ", type=" + type +
                 ", changeType='" + changeType + '\'' +
                 ", info='" + info + '\'' +
                 ", date=" + date +
+                ", id='" + id + '\'' +
+                ", price=" + price +
+                ", changeInfo=" + changeInfo +
+                ", percent=" + percent +
                 '}';
     }
 }
