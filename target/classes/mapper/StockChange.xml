@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.binzaijun.stock.mapper.StockChangeMapper">
+
+    <resultMap type="com.binzaijun.stock.domain.StockChange" id="stockChange">
+        <id     property="id"       column="id"      />
+        <result property="stockSymbol"        column="stock_symbol"       />
+        <result property="stockName"        column="stock_name"       />
+        <result property="changeType" column="change_type"/>
+        <result property="info" column="change_info"/>
+        <result property="date" column="change_date"/>
+    </resultMap>
+
+<!-- 批量插入或者更新 -->
+    <insert id="saveOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into stock_change(id,stock_symbol, stock_name, change_type, change_info, change_date)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.id},#{entity.stockSymbol}, #{entity.stockName}, #{entity.changeType}, #{entity.info},
+            #{entity.date})
+        </foreach>
+        on duplicate key update
+        stock_symbol = values(stock_symbol),
+        stock_name = values(stock_name),
+        change_type = values(change_type),
+        change_info = values(change_info),
+        change_date = values(change_date)
+    </insert>
+
+</mapper>
