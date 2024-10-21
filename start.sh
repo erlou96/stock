@@ -1,5 +1,16 @@
 #!/bin/bash
 
+
+pid=`ps -ef|grep stock |grep -v grep  |awk '{print $2}'`
+
+if [ -n "$pid" ]; then
+  echo "Process with keyword Stock is running, killing process..."
+  kill -9 "$pid"
+  echo "Process killed."
+else
+  echo "No running process found with keyword Stock."
+fi
+
 # git 拉取最新代码
 git pull
 
