@@ -322,7 +322,7 @@ public class StockDataUtil {
 
         stockChangeList = stockChangeList.stream().filter(tmp -> {
             // 过滤包含"60" 和 "00" 开头的主板股票
-           return (tmp.getStockSymbol().startsWith("60") || tmp.getStockSymbol().startsWith("00")) && !tmp.getStockName().startsWith("ST") && !tmp.getStockName().startsWith("*ST");
+           return (tmp.getStockSymbol().startsWith("60") || tmp.getStockSymbol().startsWith("00") || tmp.getStockSymbol().startsWith("30") || tmp.getStockSymbol().startsWith("68")) && !tmp.getStockName().startsWith("ST") && !tmp.getStockName().startsWith("*ST");
         }).map(tmp -> {
             // 更新时间字段
             Date date = DateUtil.formatDate(tmp.getTm());
