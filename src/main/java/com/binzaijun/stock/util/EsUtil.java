@@ -35,7 +35,7 @@ public class EsUtil {
 
     private static Logger log = LoggerFactory.getLogger(EsUtil.class);
 
-    private static final String HOST = "59.110.32.152";
+    private static final String HOST = "43.138.38.1";
     private static final String STOCK_NAME = "stock_change";
     private static final String TYPE = "_doc";
     private static final String NAME = "elastic";
